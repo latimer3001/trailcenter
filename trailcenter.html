@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrailCenter — GPX Terrain Expander</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <link rel="stylesheet" href="trailcenter.css"/>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Main column ── -->
+  <div class="wrap">
+
+    <header>
+      <div class="eyebrow">// GPX terrain expander for TrailPrint3D</div>
+      <h1>TRAIL<span>CENTER</span></h1>
+    </header>
+
+    <div class="about">
+      <p>
+        A prep tool for the <strong>TrailPrint3D</strong> Blender addon, which generates
+        3D-printable topographic maps from GPX trail data. Load GPX files from any source
+        — AllTrails, Gaia GPS, Garmin, Strava, or anywhere else.
+      </p>
+      <p>
+        <strong>The problem:</strong> AllTrails GPX files center the terrain on the trail, not the
+        summit — so a peak approached from one side ends up at the edge of the print.
+        TrailCenter fixes this by expanding the bounding box so the summit sits dead center,
+        while keeping the trail data intact for TrailPrint3D to carve.
+      </p>
+      <p>
+        You can also <strong>load multiple trails at once</strong> — TrailCenter merges them into
+        a single GPX, so you can combine an approach trail, a summit loop, and a descent
+        route into one print. Mix and match sources freely: load an AllTrails GPX for the
+        main trail, then add connecting routes from OSM search, and they'll all be combined
+        into a single output.
+      </p>
+    </div>
+
+    <!-- 01 Load GPX -->
+    <div class="card">
+      <div class="card-label">01 — Load Trail Data</div>
+
+      <div class="input-tabs">
+        <button class="input-tab active" onclick="switchInputTab('upload')">Upload GPX</button>
+        <button class="input-tab" onclick="switchInputTab('search')">Search OSM</button>
+      </div>
+
+      <!-- Upload tab -->
+      <div class="input-panel active" id="ipanel-upload">
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="gpxFile" accept=".gpx" multiple />
+          <span class="drop-icon">⛰</span>
+          <div class="drop-main">Drop one or more GPX files here</div>
+          <div class="drop-sub">or click to browse · any GPX source works · load multiple to combine</div>
+          <div class="file-loaded" id="fileLoaded"></div>
+        </div>
+      </div>
+
+      <!-- OSM search tab -->
+      <div class="input-panel" id="ipanel-search">
+        <div class="field">
+          <label>Trail Name</label>
+          <div class="lookup-wrap">
+            <input type="text" id="trailSearchName" placeholder="e.g. Franconia Ridge Loop" />
+            <button class="btn-sm" id="trailSearchBtn" onclick="searchTrails()">Search</button>
+          </div>
+          <div class="hint">Searches OpenStreetMap hiking routes · results may vary vs AllTrails</div>
+          <div class="status" id="trailSearchStatus"></div>
+        </div>
+        <div id="trailResults"></div>
+      </div>
+
+    </div>
+    <div id="fileList"></div>
+
+    <!-- Map preview (hidden until GPX loaded) -->
+    <div class="card" id="mapCard">
+      <div class="card-label">Preview</div>
+      <div id="map"></div>
+      <div class="map-legend">
+        <div class="legend-item">
+          <div class="legend-line" style="background:#c8f060"></div>Trail
+        </div>
+        <div class="legend-item">
+          <div class="legend-dash" style="border-color:#1565c0"></div>Original bounds
+        </div>
+        <div class="legend-item">
+          <div class="legend-dash" style="border-color:#e63946"></div>Expanded bounds
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="border-color:#e63946;background:rgba(230,57,70,0.3)"></div>Summit / center
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 Center On -->
+    <div class="card">
+      <div class="card-label">02 — Center On</div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('auto')">Auto Summit</button>
+        <button class="tab" onclick="switchTab('coords')">Coordinates</button>
+        <button class="tab" onclick="switchTab('manual')">Manual Padding</button>
+      </div>
+
+      <!-- Auto summit lookup -->
+      <div class="tab-panel active" id="panel-auto">
+        <div class="field">
+          <label>Summit / Peak Name</label>
+          <div class="lookup-wrap">
+            <input type="text" id="summitName" placeholder="e.g. Mount Washington, New Hampshire" />
+            <button class="btn-sm" id="lookupBtn" onclick="lookupSummit()">Lookup</button>
+          </div>
+          <div class="hint">Searches OpenStreetMap — be specific to avoid mismatches</div>
+          <div class="status" id="lookupStatus"></div>
+        </div>
+        <div class="field">
+          <label>Extra Padding (degrees)</label>
+          <input type="number" id="autoPadding" value="0.01" min="0" max="0.5" step="0.005" />
+          <div class="hint">0.01° ≈ 0.5 mi · 0.02° ≈ 1.1 mi</div>
+        </div>
+      </div>
+
+      <!-- Manual coordinates -->
+      <div class="tab-panel" id="panel-coords">
+        <div class="field-row">
+          <div class="field">
+            <label>Latitude</label>
+            <input type="number" id="manLat" placeholder="44.27048" step="0.00001" />
+          </div>
+          <div class="field">
+            <label>Longitude</label>
+            <input type="number" id="manLon" placeholder="-71.30332" step="0.00001" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Extra Padding (degrees)</label>
+          <input type="number" id="coordPadding" value="0.01" min="0" max="0.5" step="0.005" />
+          <div class="hint">0.01° ≈ 0.5 mi · 0.02° ≈ 1.1 mi</div>
+        </div>
+      </div>
+
+      <!-- Manual padding -->
+      <div class="tab-panel" id="panel-manual">
+        <div class="field-grid">
+          <div class="field">
+            <label>Right (East)</label>
+            <input type="number" id="padRight" value="0" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <label>Left (West)</label>
+            <input type="number" id="padLeft" value="0" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <label>Top (North)</label>
+            <input type="number" id="padTop" value="0" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <label>Bottom (South)</label>
+            <input type="number" id="padBottom" value="0" min="0" step="0.01" />
+          </div>
+        </div>
+        <div class="hint">0.01° ≈ 0.5 mi · 0.02° ≈ 1.1 mi · 0.05° ≈ 3.5 mi</div>
+      </div>
+    </div>
+
+    <!-- 03 Process -->
+    <div class="card">
+      <div class="card-label">03 — Process</div>
+      <button class="btn-process" id="processBtn" onclick="process()" disabled>
+        Generate Expanded GPX
+      </button>
+      <div class="log" id="log"></div>
+      <div class="bbox-grid" id="bboxGrid" style="display:none">
+        <div class="bbox-card">
+          <div class="bbox-title">Original</div>
+          <div class="bbox-val" id="bboxOrig"></div>
+        </div>
+        <div class="bbox-card">
+          <div class="bbox-title">Expanded</div>
+          <div class="bbox-val" id="bboxNew"></div>
+        </div>
+      </div>
+      <a class="btn-download" id="downloadBtn">↓ Download Expanded GPX</a>
+    </div>
+
+  </div><!-- /wrap -->
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-card">
+
+      <div class="sidebar-title">How to Use</div>
+      <ul class="step-list">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <strong>Load trail data</strong>
+            <em>Upload GPX</em> — load a .gpx file from any source: AllTrails, Gaia GPS, Garmin, Strava, or a device export. AllTrails has the largest trail library but any GPX works.<br><br>
+            <em>Search OSM</em> — search OpenStreetMap hiking routes by name. Good for well-known trails.<br><br>
+            You can <strong>mix both sources freely</strong> — load an AllTrails GPX and add OSM trails on top, or load several GPX files at once. All trails are merged into one output.
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <strong>Verify on the map</strong>
+            The trail and original bounding box appear automatically. Each trail gets its own color. Use the ✕ button to remove any unwanted files.
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <strong>Choose a centering mode</strong>
+            <em>Auto Summit</em> — type the peak name, hit Lookup, verify the red dot.<br>
+            <em>Coordinates</em> — paste lat/lon directly.<br>
+            <em>Manual</em> — specify raw padding per direction.
+          </div>
+        </li>
+        <li>
+          <div class="step-num">4</div>
+          <div class="step-text">
+            <strong>Generate &amp; verify</strong>
+            Click Generate. The red dashed box shows the new terrain extent — the summit dot should be centered inside it.
+          </div>
+        </li>
+        <li>
+          <div class="step-num">5</div>
+          <div class="step-text">
+            <strong>Download &amp; use in Blender</strong>
+            Load the expanded GPX into TrailPrint3D. Enable <em>Overwrite Path Elevation</em> and <em>SingleColorMode</em> for two-piece prints.
+          </div>
+        </li>
+      </ul>
+
+      <div class="sidebar-divider"></div>
+      <div class="tip-label">Degree Reference</div>
+      <table class="deg-table">
+        <tr><td>0.01°</td><td>≈ 0.5 miles</td></tr>
+        <tr><td>0.02°</td><td>≈ 1.1 miles</td></tr>
+        <tr><td>0.03°</td><td>≈ 1.7 miles</td></tr>
+        <tr><td>0.05°</td><td>≈ 3.5 miles</td></tr>
+      </table>
+
+      <div class="sidebar-divider"></div>
+      <div class="tip-label">Tips</div>
+      <ul class="tip-list">
+        <li>Be specific with summit names — add state or country to avoid mismatches</li>
+        <li>0.01–0.02° extra padding gives a comfortable border around the terrain</li>
+        <li>Verify the red dot on the map before generating</li>
+        <li>The expanded GPX keeps the real trail data intact</li>
+      </ul>
+
+    </div>
+  </aside>
+
+</div><!-- /layout -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="trailcenter.js"></script>
+
+</body>
+</html>
