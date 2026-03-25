@@ -21,22 +21,12 @@
 
     <div class="about">
       <p>
-        A prep tool for the <strong>TrailPrint3D</strong> Blender addon, which generates
-        3D-printable topographic maps from GPX trail data. Load GPX files from any source
-        — AllTrails, Gaia GPS, Garmin, Strava, or anywhere else.
+        A prep tool for <strong>TrailPrint3D</strong> — the Blender addon that generates 3D-printable topo maps from GPX files.
+        GPX files from AllTrails and other sources are centered on the trail, not the summit.
+        TrailCenter recenters the terrain on the peak so your print comes out right.
       </p>
       <p>
-        <strong>The problem:</strong> AllTrails GPX files center the terrain on the trail, not the
-        summit — so a peak approached from one side ends up at the edge of the print.
-        TrailCenter fixes this by expanding the bounding box so the summit sits dead center,
-        while keeping the trail data intact for TrailPrint3D to carve.
-      </p>
-      <p>
-        You can also <strong>load multiple trails at once</strong> — TrailCenter merges them into
-        a single GPX, so you can combine an approach trail, a summit loop, and a descent
-        route into one print. Mix and match sources freely: load an AllTrails GPX for the
-        main trail, then add connecting routes from OSM search, and they'll all be combined
-        into a single output.
+        Load GPX files from any source, search OpenStreetMap directly, or <strong>combine multiple trails</strong> into one print — mix AllTrails GPX files and OpenStreetMap routes freely.
       </p>
     </div>
 
@@ -46,7 +36,7 @@
 
       <div class="input-tabs">
         <button class="input-tab active" onclick="switchInputTab('upload')">Upload GPX</button>
-        <button class="input-tab" onclick="switchInputTab('search')">Search OSM</button>
+        <button class="input-tab" onclick="switchInputTab('search')">Search OpenStreetMap</button>
       </div>
 
       <!-- Upload tab -->
@@ -60,7 +50,7 @@
         </div>
       </div>
 
-      <!-- OSM search tab -->
+      <!-- OpenStreetMap search tab -->
       <div class="input-panel" id="ipanel-search">
         <div class="field">
           <label>Trail Name</label>
@@ -68,7 +58,7 @@
             <input type="text" id="trailSearchName" placeholder="e.g. Franconia Ridge Loop" />
             <button class="btn-sm" id="trailSearchBtn" onclick="searchTrails()">Search</button>
           </div>
-          <div class="hint">Searches OpenStreetMap hiking routes · results may vary vs AllTrails</div>
+          <div class="hint">Searches OpenStreetMap hiking routes · results vary vs AllTrails GPX</div>
           <div class="status" id="trailSearchStatus"></div>
         </div>
         <div id="trailResults"></div>
@@ -198,40 +188,29 @@
         <li>
           <div class="step-num">1</div>
           <div class="step-text">
-            <strong>Load trail data</strong>
-            <em>Upload GPX</em> — load a .gpx file from any source: AllTrails, Gaia GPS, Garmin, Strava, or a device export. AllTrails has the largest trail library but any GPX works.<br><br>
-            <em>Search OSM</em> — search OpenStreetMap hiking routes by name. Good for well-known trails.<br><br>
-            You can <strong>mix both sources freely</strong> — load an AllTrails GPX and add OSM trails on top, or load several GPX files at once. All trails are merged into one output.
+            <strong>Load trails</strong>
+            Upload any .gpx file, or search OpenStreetMap by name. Load multiple trails from any mix of sources — they get merged into one output.
           </div>
         </li>
         <li>
           <div class="step-num">2</div>
           <div class="step-text">
-            <strong>Verify on the map</strong>
-            The trail and original bounding box appear automatically. Each trail gets its own color. Use the ✕ button to remove any unwanted files.
+            <strong>Set center point</strong>
+            Type a summit name and hit Lookup, paste coordinates, or set padding manually. Verify the red dot on the map.
           </div>
         </li>
         <li>
           <div class="step-num">3</div>
           <div class="step-text">
-            <strong>Choose a centering mode</strong>
-            <em>Auto Summit</em> — type the peak name, hit Lookup, verify the red dot.<br>
-            <em>Coordinates</em> — paste lat/lon directly.<br>
-            <em>Manual</em> — specify raw padding per direction.
+            <strong>Generate &amp; download</strong>
+            Click Generate. The red dashed box shows the new terrain extent — summit should be centered. Download the expanded GPX.
           </div>
         </li>
         <li>
           <div class="step-num">4</div>
           <div class="step-text">
-            <strong>Generate &amp; verify</strong>
-            Click Generate. The red dashed box shows the new terrain extent — the summit dot should be centered inside it.
-          </div>
-        </li>
-        <li>
-          <div class="step-num">5</div>
-          <div class="step-text">
-            <strong>Download &amp; use in Blender</strong>
-            Load the expanded GPX into TrailPrint3D. Enable <em>Overwrite Path Elevation</em> and <em>SingleColorMode</em> for two-piece prints.
+            <strong>Load into TrailPrint3D</strong>
+            Enable <em>Overwrite Path Elevation</em> and <em>SingleColorMode</em> for two-piece prints.
           </div>
         </li>
       </ul>

@@ -587,7 +587,7 @@ function importOsmTrail(index) {
       el.classList.toggle('selected', i === index);
     });
 
-    log(`✓ Imported from OSM: ${element.tags.name || 'trail'}`, 'ok');
+    log(`✓ Imported from OpenStreetMap: ${element.tags.name || 'trail'}`, 'ok');
 
   } catch (ex) {
     log('✗ Failed to import trail: ' + ex.message, 'err');
