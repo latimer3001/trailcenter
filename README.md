@@ -8,14 +8,14 @@ Live: [latimer3001.github.io/trailcenter](https://latimer3001.github.io/trailcen
 
 ## The Problem
 
-TrailPrint3D generates 3D-printable topographic maps from GPX trail data. It's excellent — but the terrain it generates is centered on whatever bounding box your GPX file defines. GPX files from AllTrails and most other sources are centered on the trail itself, not the mountain. If your trail approaches a summit from one side, the peak ends up at the edge of the print instead of the center.
+TrailPrint3D generates 3D-printable topographic maps from GPX trail data. It's excellent — but the terrain it generates is centered on whatever bounding box your GPX file defines. GPX files from [AllTrails](https://www.alltrails.com) and most other sources are centered on the trail itself, not the mountain. If your trail approaches a summit from one side, the peak ends up at the edge of the print instead of the center.
 
 TrailCenter fixes this.
 
 ## What It Does
 
-- Loads GPX files from any source (AllTrails, Gaia GPS, Garmin, Strava, etc.)
-- Searches OpenStreetMap for hiking routes directly — no GPX download required
+- Loads GPX files from any source ([AllTrails](https://www.alltrails.com), [Gaia GPS](https://www.gaiagps.com), [Garmin](https://connect.garmin.com), [Strava](https://www.strava.com), etc.)
+- Searches [OpenStreetMap](https://www.openstreetmap.org) for hiking routes directly — no GPX download required
 - **Combines multiple trails** from any mix of sources into a single GPX output
 - Expands the bounding box so a chosen summit or point is centered in the terrain
 - Shows everything on an interactive topo map so you can verify before downloading
@@ -25,15 +25,15 @@ TrailCenter fixes this.
 
 ### 1. Load Trail Data
 
-**Upload GPX** — drop one or more `.gpx` files onto the drop zone, or click to browse. You can load multiple files and they will be merged into a single output. Mix sources freely — an AllTrails GPX plus an OSM route, for example.
+**Upload GPX** — drop one or more `.gpx` files onto the drop zone, or click to browse. You can load multiple files and they will be merged into a single output. Mix sources freely — an [AllTrails](https://www.alltrails.com) GPX plus an OpenStreetMap route, for example.
 
-**Search OSM** — type a trail name and search OpenStreetMap hiking routes. Click a result to import it. Works well for well-known named trails; quality varies for less-documented routes.
+**Search OpenStreetMap** — type a trail name and search [OpenStreetMap](https://www.openstreetmap.org) hiking routes. Click a result to import it. Works well for well-known named trails; quality varies for less-documented routes.
 
 ### 2. Center the Map
 
 Choose a centering mode:
 
-- **Auto Summit** — type a peak name (e.g. `Mount Washington, New Hampshire`), hit Lookup to resolve it via OpenStreetMap, and verify the red dot lands on the right summit.
+- **Auto Summit** — type a peak name (e.g. `Mount Washington, New Hampshire`), hit Lookup to resolve it via [OpenStreetMap](https://www.openstreetmap.org), and verify the red dot lands on the right summit.
 - **Coordinates** — paste lat/lon directly if you already know them.
 - **Manual Padding** — add raw padding in degrees per direction for full control.
 
@@ -45,7 +45,7 @@ Click **Generate Expanded GPX**. The map updates to show the new terrain extent 
 
 ## TrailPrint3D Settings
 
-When loading the expanded GPX in the TrailPrint3D Blender addon:
+When loading the expanded GPX in the TrailPrint3D [Blender](https://www.blender.org) addon:
 
 - Enable **Overwrite Path Elevation** — the phantom boundary points added by TrailCenter have `0` elevation; this ensures TrailPrint3D fetches real DEM data instead
 - Enable **SingleColorMode** for two-piece prints — outputs separate terrain and trail inlay STLs that can be printed in different colors and assembled
